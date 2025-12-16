@@ -26,6 +26,8 @@ jobs:
             tag: v3.29.0
           - name: calico/node-driver-registrar
             tag: v3.29.0
+          - name: calico/kube-controllers
+            tag: v3.29.0
 
     steps:
       - name: Log in to GHCR
