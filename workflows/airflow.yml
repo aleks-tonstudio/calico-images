@@ -1,0 +1,50 @@
+name: Mirror Calico Images to GHCR
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        image:
+          - name: calico/node
+            tag: v3.29.0
+          - name: calico/pod2daemon-flexvol
+            tag: v3.29.0
+          - name: calico/typha
+            tag: v3.29.0
+          - name: calico/csi
+            tag: v3.29.0
+          - name: calico/node-driver-registrar
+            tag: v3.29.0
+
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull, tag, and push image
+        run: |
+          SRC_IMAGE=docker.io/${{ matrix.image.name }}:${{ matrix.image.tag }}
+          DEST_IMAGE=ghcr.io/${{ github.repository_owner }}/${{ matrix.image.name }}:${{ matrix.image.tag }}
+
+          echo "Pulling $SRC_IMAGE"
+          docker pull $SRC_IMAGE
+
+          echo "Tagging as $DEST_IMAGE"
+          docker tag $SRC_IMAGE $DEST_IMAGE
+
+          echo "Pushing $DEST_IMAGE"
+          docker push $DEST_IMAGE
